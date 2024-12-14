@@ -188,7 +188,38 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
 function ree_tabla_precio_dia() {
     $start_date = date('Y-m-d') . 'T00:00';
     $end_date = date('Y-m-d') . 'T23:59';
-    return generar_tabla($start_date, $end_date);
+    return generar_tabla_estilo($start_date, $end_date);
+}
+
+// Función para mostrar la tabla con precios del día siguiente
+function ree_tabla_precio_dia_siguiente() {
+    $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
+    $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
+    return generar_tabla_estilo($start_date, $end_date);
+}
+
+// Función genérica para generar tablas con estilo
+function generar_tabla_estilo($start_date, $end_date) {
+    $data = ree_procesar_datos($start_date, $end_date);
+    if (!$data) return 'Hubo un error al cargar los datos.';
+
+    $rows = '';
+    $hours = array_chunk($data['values'], 6);
+    $hour_labels = array_chunk($data['labels'], 6);
+
+    foreach ($hours as $row_index => $row_data) {
+        $rows .= "<tr>";
+        foreach ($hour_labels[$row_index] as $label) {
+            $rows .= "<th>$label</th>";
+        }
+        $rows .= "</tr><tr>";
+        foreach ($row_data as $price) {
+            $rows .= "<td>€" . esc_html($price) . "</td>";
+        }
+        $rows .= "</tr>";
+    }
+
+    return "<table class='ree-table ree-table-precio-dia' border='1'><thead>$rows</thead></table>";
 }
 
 // Función para mostrar la tabla comparativa
@@ -196,20 +227,6 @@ function ree_tabla_comparativa() {
     $start_date = date('Y-m-d') . 'T00:00';
     $end_date = date('Y-m-d') . 'T23:59';
     return generar_tabla_comparativa($start_date, $end_date);
-}
-
-// Función genérica para generar tablas
-function generar_tabla($start_date, $end_date) {
-    $data = ree_procesar_datos($start_date, $end_date);
-    if (!$data) return 'Hubo un error al cargar los datos.';
-
-    $rows = '';
-    foreach ($data['values'] as $index => $price) {
-        $hour = esc_html($data['labels'][$index]);
-        $rows .= "<tr><td>$hour</td><td>€" . esc_html($price) . "</td></tr>";
-    }
-
-    return "<table class='ree-table ree-table-precio-dia'><thead><tr><th>Hora</th><th>Precio (€ / kWh)</th></tr></thead><tbody>$rows</tbody></table>";
 }
 
 // Función genérica para generar tablas comparativas
@@ -292,13 +309,6 @@ function ree_tabla_comparativa_dia_siguiente() {
     $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
     $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
     return generar_tabla_comparativa($start_date, $end_date);
-}
-
-// Función para mostrar la tabla con precios del día siguiente
-function ree_tabla_precio_dia_siguiente() {
-    $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
-    $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
-    return generar_tabla($start_date, $end_date);
 }
 
 // Registrar los shortcodes
