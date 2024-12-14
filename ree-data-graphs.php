@@ -178,7 +178,7 @@ function generar_tabla_estilo($start_date, $end_date) {
         foreach ($row_data as $price) {
             $color_index = (int)(($price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
             $color = $color_scale[$color_index];
-            $rows .= "<td style='background-color: $color; color: #000000;'>€" . esc_html($price) . "</td>";
+            $rows .= "<td style='background-color: $color; color: #000000;'>€" . esc_html(number_format($price, 3)) . "</td>";
         }
         $rows .= "</tr>";
     }
@@ -220,9 +220,9 @@ function generar_tabla_comparativa($start_date, $end_date) {
         </thead>
         <tbody>
             <tr>
-                <td style='background-color: #fffaf2; color: #000000;'>€" . esc_html(number_format($max_price, 4)) . " ($max_time)</td>
-                <td style='background-color: #ffffff; color: #000000;'>€" . esc_html(number_format($current_price, 4)) . " ($current_time)</td>
-                <td style='background-color: #ebffeb; color: #000000;'>€" . esc_html(number_format($min_price, 4)) . " ($min_time)</td>
+                <td style='background-color: #fffaf2; color: #000000;'>€" . esc_html(number_format($max_price, 3)) . " ($max_time)</td>
+                <td style='background-color: #ffffff; color: #000000;'>€" . esc_html(number_format($current_price, 3)) . " ($current_time)</td>
+                <td style='background-color: #ebffeb; color: #000000;'>€" . esc_html(number_format($min_price, 3)) . " ($min_time)</td>
             </tr>
         </tbody>
     </table>";
