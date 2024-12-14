@@ -96,7 +96,7 @@
 
     .chart-container canvas {
         width: 100% !important;
-        height: 400px !important;
+        height: 250px !important;
     }
 
     .ree-table {
@@ -115,10 +115,10 @@
     }
 
     .high-price {
-        background-color: #f8d7da;
+        background-color: #fffaf2;
     }
 
     .low-price {
-        background-color: #d4edda;
+        background-color: #ebffeb;
     }
 </style>
