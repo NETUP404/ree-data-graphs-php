@@ -209,6 +209,20 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $min_time = esc_html($data['labels'][$min_hour]);
     $current_time = esc_html($data['labels'][$current_hour]);
 
+    // Calculate colors for max, current, and min prices
+    $color_scale = [
+        '#00cc00', '#33cc33', '#66cc66', '#99cc00', '#cccc00', '#ffcc00',
+        '#ffcc66', '#ff9966', '#ff9933', '#ff6600', '#ff6633', '#cc6600'
+    ];
+
+    $max_color_index = (int)(($max_price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
+    $current_color_index = (int)(($current_price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
+    $min_color_index = (int)(($min_price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
+    
+    $max_color = $color_scale[$max_color_index];
+    $current_color = $color_scale[$current_color_index];
+    $min_color = $color_scale[$min_color_index];
+
     return "
     <table class='ree-table ree-table-comparativa'>
         <thead>
@@ -220,9 +234,9 @@ function generar_tabla_comparativa($start_date, $end_date) {
         </thead>
         <tbody>
             <tr>
-                <td style='background-color: #fffaf2; color: #000000;'>€" . esc_html(number_format($max_price, 3)) . " ($max_time)</td>
-                <td style='background-color: #ffffff; color: #000000;'>€" . esc_html(number_format($current_price, 3)) . " ($current_time)</td>
-                <td style='background-color: #ebffeb; color: #000000;'>€" . esc_html(number_format($min_price, 3)) . " ($min_time)</td>
+                <td style='background-color: $max_color; color: #000000;'>€" . esc_html(number_format($max_price, 3)) . " ($max_time)</td>
+                <td style='background-color: $current_color; color: #000000;'>€" . esc_html(number_format($current_price, 3)) . " ($current_time)</td>
+                <td style='background-color: $min_color; color: #000000;'>€" . esc_html(number_format($min_price, 3)) . " ($min_time)</td>
             </tr>
         </tbody>
     </table>";
