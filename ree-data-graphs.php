@@ -209,8 +209,8 @@ function generar_tabla_estilo($start_date, $end_date) {
     $min_price = min($data['values']);
     $max_price = max($data['values']);
     $color_scale = [
-        '#ffcccc', '#ff9999', '#ff6666', '#ff3333', '#ff0000', '#ffcc00',
-        '#ffff66', '#ccff66', '#99ff33', '#66ff33', '#33ff33', '#00cc00'
+        '#00cc00', '#33cc33', '#66cc66', '#99cc00', '#cccc00', '#ffff66',
+        '#ffcc00', '#ff9933', '#ff6600', '#ff3333', '#ff0000', '#cc0000'
     ];
 
     foreach ($hours as $row_index => $row_data) {
