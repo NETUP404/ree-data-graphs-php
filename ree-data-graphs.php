@@ -42,12 +42,12 @@ function ree_custom_css() {
     return "
     canvas { max-width: 100%; height: auto !important; }
     .chart-container { position: relative; width: 100%; max-width: 800px; margin: 20px auto; }
-    .chart-container canvas { width: 100% !important; height: 400px !important; }
+    .chart-container canvas { width: 100% !important; height: 250px !important; }
     .ree-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
     .ree-table, .ree-table th, .ree-table td { border: 1px solid #ddd; }
     .ree-table th, .ree-table td { padding: 8px; text-align: center; }
-    .high-price { background-color: #f8d7da; }
-    .low-price { background-color: #d4edda; }
+    .high-price { background-color: #ff0000; color: #ffffff; }
+    .low-price { background-color: #00cc00; color: #ffffff; }
     .resaltada-verde { background-color: #d4edda; }
     .resaltada-cálido { background-color: #f8d7da; }
     body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
@@ -99,7 +99,7 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
     ob_start();
     ?>
     <div class="chart-container">
-        <canvas id="precioLuzChart_<?php echo esc_attr($unique_id); ?>" width="400" height="200"></canvas>
+        <canvas id="precioLuzChart_<?php echo esc_attr($unique_id); ?>" width="400" height="250"></canvas>
     </div>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -206,6 +206,12 @@ function generar_tabla_estilo($start_date, $end_date) {
     $rows = '';
     $hours = array_chunk($data['values'], 6);
     $hour_labels = array_chunk($data['labels'], 6);
+    $min_price = min($data['values']);
+    $max_price = max($data['values']);
+    $color_scale = [
+        '#ffcccc', '#ff9999', '#ff6666', '#ff3333', '#ff0000', '#ffcc00',
+        '#ffff66', '#ccff66', '#99ff33', '#66ff33', '#33ff33', '#00cc00'
+    ];
 
     foreach ($hours as $row_index => $row_data) {
         $rows .= "<tr>";
@@ -214,13 +220,10 @@ function generar_tabla_estilo($start_date, $end_date) {
         }
         $rows .= "</tr><tr>";
         foreach ($row_data as $price) {
-            $price_class = '';
-            if ($price == max($data['values'])) {
-                $price_class = 'precio-maximo';
-            } elseif ($price == min($data['values'])) {
-                $price_class = 'precio-minimo';
-            }
-            $rows .= "<td class='$price_class'>€" . esc_html($price) . "</td>";
+            $color_index = (int)(($price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
+            $color = $color_scale[$color_index];
+            $text_color = ($price == $min_price || $price == $max_price) ? '#ffffff' : '#000000';
+            $rows .= "<td style='background-color: $color; color: $text_color;'>€" . esc_html($price) . "</td>";
         }
         $rows .= "</tr>";
     }
