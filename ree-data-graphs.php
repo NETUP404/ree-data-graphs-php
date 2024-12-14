@@ -234,9 +234,9 @@ function generar_tabla_comparativa($start_date, $end_date) {
         </thead>
         <tbody>
             <tr>
-                <td style='background-color: $max_color; color: #000000;'>€" . esc_html(number_format($max_price, 3)) . " ($max_time)</td>
-                <td style='background-color: $current_color; color: #000000;'>€" . esc_html(number_format($current_price, 3)) . " ($current_time)</td>
-                <td style='background-color: $min_color; color: #000000;'>€" . esc_html(number_format($min_price, 3)) . " ($min_time)</td>
+                <td style='background-color: $max_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($max_price, 3)) . " ($max_time)</td>
+                <td style='background-color: $current_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($current_price, 3)) . " ($current_time)</td>
+                <td style='background-color: $min_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($min_price, 3)) . " ($min_time)</td>
             </tr>
         </tbody>
     </table>";
