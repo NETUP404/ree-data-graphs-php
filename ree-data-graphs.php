@@ -50,6 +50,19 @@ function ree_custom_css() {
     .low-price { background-color: #d4edda; }
     .resaltada-verde { background-color: #d4edda; }
     .resaltada-cálido { background-color: #f8d7da; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+    .tabla-luz-container { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+    th { background-color: #f4f4f4; }
+    .grafico-precios-hoy { margin: 20px 0; font-family: 'Courier New', Courier, monospace; display: flex; }
+    .tabla-dinamica { display: flex; justify-content: space-between; margin: 20px 0; }
+    .tabla-horaria td { width: 30%; padding: 10px; text-align: center; font-size: 22px; }
+    .precio-minimo { background-color: #ebffeb; }
+    .precio-actual { background-color: #ffffff; }
+    .precio-maximo { background-color: #fffaf2; }
+    .precio-minimo, .precio-actual, .precio-maximo { font-weight: bold; }
+    #hora-actual { font-weight: bold; font-size: 18px; color: #333; background-color: #fffbdb; padding: 5px; border-radius: 5px; }
     ";
 }
 
@@ -272,6 +285,20 @@ function ree_grafico_anio() {
     $end_date = date('Y-12-31') . 'T23:59';
     $unique_id = uniqid('anio_');
     return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'meses');
+}
+
+// Función para mostrar la tabla comparativa del día siguiente
+function ree_tabla_comparativa_dia_siguiente() {
+    $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
+    $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
+    return generar_tabla_comparativa($start_date, $end_date);
+}
+
+// Función para mostrar la tabla con precios del día siguiente
+function ree_tabla_precio_dia_siguiente() {
+    $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
+    $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
+    return generar_tabla($start_date, $end_date);
 }
 
 // Registrar los shortcodes
