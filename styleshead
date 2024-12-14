@@ -1,0 +1,124 @@
+<style>
+    /* Estilos generales */
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+    }
+
+    .tabla-luz-container {
+        width: 100%;
+        overflow-x: auto;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #f4f4f4;
+    }
+
+    /* Estilo para las filas resaltadas */
+    .resaltada-verde {
+        background-color: #ebffeb; /* Verde suave */
+    }
+
+    .resaltada-cálido {
+        background-color: #fffaf2; /* Color cálido suave */
+    }
+
+    .grafico-precios-hoy {
+        margin: 20px 0;
+        font-family: 'Courier New', Courier, monospace;      
+        display: flex;
+     }
+        
+    /* Estilos de la tabla con precios */
+    .tabla-dinamica {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0;
+    }
+
+    .tabla-horaria td {
+        width: 30%;
+        padding: 10px;
+        text-align: center;
+        font-size: 22px;
+    }
+
+    .precio-minimo {
+        background-color: #ebffeb; /* Verde suave */
+    }
+
+    .precio-actual {
+        background-color: #ffffff; /* Color neutro */
+    }
+
+    .precio-maximo {
+        background-color: #fffaf2; /* Color cálido */
+    }
+
+    .precio-minimo, .precio-actual, .precio-maximo {
+        font-weight: bold;
+    }
+
+    /* Estilo de la casilla que muestra la hora de Madrid */
+    #hora-actual {
+        font-weight: bold;
+        font-size: 18px;
+        color: #333;
+        background-color: #fffbdb; /* Un color brillante para destacar la hora */
+        padding: 5px;
+        border-radius: 5px;
+    }
+
+    canvas {
+        max-width: 100%;
+        height: auto !important;
+    }
+
+    .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 800px;
+        margin: 20px auto;
+    }
+
+    .chart-container canvas {
+        width: 100% !important;
+        height: 400px !important;
+    }
+
+    .ree-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+    }
+
+    .ree-table, .ree-table th, .ree-table td {
+        border: 1px solid #ddd;
+    }
+
+    .ree-table th, .ree-table td {
+        padding: 8px;
+        text-align: center;
+    }
+
+    .high-price {
+        background-color: #f8d7da;
+    }
+
+    .low-price {
+        background-color: #d4edda;
+    }
+</style>
