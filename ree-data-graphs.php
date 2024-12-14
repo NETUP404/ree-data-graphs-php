@@ -1,4 +1,3 @@
-mi plugin actualizado. mira en el repo
 <?php
 /*
 Plugin Name: REE Data Graphs
@@ -12,7 +11,6 @@ function ree_enqueue_assets() {
     wp_enqueue_script('chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
     wp_enqueue_script('chartjs-adapter-date-fns', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns', [], null, true);
     wp_add_inline_script('chartjs', ree_custom_js());
-    wp_add_inline_style('ree-styles', ree_custom_css());
 }
 add_action('wp_enqueue_scripts', 'ree_enqueue_assets');
 
@@ -21,34 +19,6 @@ function ree_custom_js() {
     document.addEventListener('DOMContentLoaded', function () {
         // Código de resaltado de celdas eliminado
     });
-    ";
-}
-
-function ree_custom_css() {
-    return "
-    canvas { max-width: 100%; height: auto !important; }
-    .chart-container { position: relative; width: 100%; max-width: 800px; margin: 20px auto; }
-    .chart-container canvas { width: 100% !important; height: 250px !important; }
-    .ree-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    .ree-table, .ree-table th, .ree-table td { border: 1px solid #ddd; }
-    .ree-table th, .ree-table td { padding: 8px; text-align: center; }
-    .high-price { background-color: #ff9933; color: #000000; } /* Color del texto cambiado a negro */
-    .low-price { background-color: #007700; color: #000000; } /* Color del texto cambiado a negro */
-    .resaltada-verde { background-color: #d4edda; }
-    .resaltada-cálido { background-color: #f8d7da; }
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-    .tabla-luz-container { width: 100%; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-    th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
-    th { background-color: #f4f4f4; }
-    .grafico-precios-hoy { margin: 20px 0; font-family: 'Courier New', Courier, monospace; display: flex; }
-    .tabla-dinamica { display: flex; justify-content: space-between; margin: 20px 0; }
-    .tabla-horaria td { width: 30%; padding: 10px; text-align: center; font-size: 22px; }
-    .precio-minimo { background-color: #ebffeb; }
-    .precio-actual { background-color: #ffffff; }
-    .precio-maximo { background-color: #fffaf2; }
-    .precio-minimo, .precio-actual, .precio-maximo { font-weight: bold; }
-    #hora-actual { font-weight: bold; font-size: 18px; color: #333; background-color: #fffbdb; padding: 5px; border-radius: 5px; }
     ";
 }
 
@@ -208,7 +178,7 @@ function generar_tabla_estilo($start_date, $end_date) {
         foreach ($row_data as $price) {
             $color_index = (int)(($price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
             $color = $color_scale[$color_index];
-            $rows .= "<td style='background-color: $color; color: #000000;'>€" . esc_html($price) . "</td>"; // Color del texto cambiado a negro
+            $rows .= "<td style='background-color: $color; color: #000000;'>€" . esc_html($price) . "</td>";
         }
         $rows .= "</tr>";
     }
@@ -250,9 +220,9 @@ function generar_tabla_comparativa($start_date, $end_date) {
         </thead>
         <tbody>
             <tr>
-                <td style='background-color: #fffaf2; color: #000000;'>€" . esc_html(number_format($max_price, 4)) . " ($max_time)</td> <!-- Color del texto cambiado a negro -->
+                <td style='background-color: #fffaf2; color: #000000;'>€" . esc_html(number_format($max_price, 4)) . " ($max_time)</td>
                 <td style='background-color: #ffffff; color: #000000;'>€" . esc_html(number_format($current_price, 4)) . " ($current_time)</td>
-                <td style='background-color: #ebffeb; color: #000000;'>€" . esc_html(number_format($min_price, 4)) . " ($min_time)</td> <!-- Color del texto cambiado a negro -->
+                <td style='background-color: #ebffeb; color: #000000;'>€" . esc_html(number_format($min_price, 4)) . " ($min_time)</td>
             </tr>
         </tbody>
     </table>";
