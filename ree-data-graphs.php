@@ -18,22 +18,7 @@ add_action('wp_enqueue_scripts', 'ree_enqueue_assets');
 function ree_custom_js() {
     return "
     document.addEventListener('DOMContentLoaded', function () {
-        const resaltarCeldas = (tabla, indices) => {
-            const filas = tabla.querySelectorAll('tr');
-            let minValor = Infinity, maxValor = -Infinity, minCelda, maxCelda;
-            filas.forEach(fila => {
-                const celdas = fila.querySelectorAll('td');
-                const valorMax = parseFloat(celdas[indices.max].textContent.replace('€', '').trim());
-                const valorMin = parseFloat(celdas[indices.min].textContent.replace('€', '').trim());
-                if (valorMax > maxValor) { maxValor = valorMax; maxCelda = celdas[indices.max]; }
-                if (valorMin < minValor) { minValor = valorMin; minCelda = celdas[indices.min]; }
-            });
-            if (minCelda) minCelda.classList.add('resaltada-verde');
-            if (maxCelda) maxCelda.classList.add('resaltada-cálido');
-        };
-
-        document.querySelectorAll('.ree-table-comparativa tbody').forEach(tabla => resaltarCeldas(tabla, { max: 0, min: 2 }));
-        document.querySelectorAll('.ree-table-precio-dia tbody').forEach(tabla => resaltarCeldas(tabla, { max: 1, min: 1 }));
+        // Código de resaltado de celdas eliminado
     });
     ";
 }
@@ -46,8 +31,8 @@ function ree_custom_css() {
     .ree-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
     .ree-table, .ree-table th, .ree-table td { border: 1px solid #ddd; }
     .ree-table th, .ree-table td { padding: 8px; text-align: center; }
-    .high-price { background-color: #ff0000; color: #ffffff; }
-    .low-price { background-color: #00cc00; color: #ffffff; }
+    .high-price { background-color: #ff9933; color: #000000; } /* Color del texto cambiado a negro */
+    .low-price { background-color: #007700; color: #000000; } /* Color del texto cambiado a negro */
     .resaltada-verde { background-color: #d4edda; }
     .resaltada-cálido { background-color: #f8d7da; }
     body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
@@ -209,8 +194,8 @@ function generar_tabla_estilo($start_date, $end_date) {
     $min_price = min($data['values']);
     $max_price = max($data['values']);
     $color_scale = [
-        '#00cc00', '#33cc33', '#66cc66', '#99cc00', '#cccc00', '#ffff66',
-        '#ffcc00', '#ff9933', '#ff6600', '#ff3333', '#ff0000', '#cc0000'
+        '#00cc00', '#33cc33', '#66cc66', '#99cc00', '#cccc00', '#ffcc00',
+        '#ffcc66', '#ff9966', '#ff9933', '#ff6600', '#ff6633', '#cc6600'
     ];
 
     foreach ($hours as $row_index => $row_data) {
@@ -222,8 +207,7 @@ function generar_tabla_estilo($start_date, $end_date) {
         foreach ($row_data as $price) {
             $color_index = (int)(($price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
             $color = $color_scale[$color_index];
-            $text_color = ($price == $min_price || $price == $max_price) ? '#ffffff' : '#000000';
-            $rows .= "<td style='background-color: $color; color: $text_color;'>€" . esc_html($price) . "</td>";
+            $rows .= "<td style='background-color: $color; color: #000000;'>€" . esc_html($price) . "</td>"; // Color del texto cambiado a negro
         }
         $rows .= "</tr>";
     }
@@ -265,9 +249,9 @@ function generar_tabla_comparativa($start_date, $end_date) {
         </thead>
         <tbody>
             <tr>
-                <td class='high-price'>€" . esc_html(number_format($max_price, 4)) . " ($max_time)</td>
-                <td>€" . esc_html(number_format($current_price, 4)) . " ($current_time)</td>
-                <td class='low-price'>€" . esc_html(number_format($min_price, 4)) . " ($min_time)</td>
+                <td style='background-color: #fffaf2; color: #000000;'>€" . esc_html(number_format($max_price, 4)) . " ($max_time)</td> <!-- Color del texto cambiado a negro -->
+                <td style='background-color: #ffffff; color: #000000;'>€" . esc_html(number_format($current_price, 4)) . " ($current_time)</td>
+                <td style='background-color: #ebffeb; color: #000000;'>€" . esc_html(number_format($min_price, 4)) . " ($min_time)</td> <!-- Color del texto cambiado a negro -->
             </tr>
         </tbody>
     </table>";
