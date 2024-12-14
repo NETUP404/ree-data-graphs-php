@@ -214,7 +214,13 @@ function generar_tabla_estilo($start_date, $end_date) {
         }
         $rows .= "</tr><tr>";
         foreach ($row_data as $price) {
-            $rows .= "<td>€" . esc_html($price) . "</td>";
+            $price_class = '';
+            if ($price == max($data['values'])) {
+                $price_class = 'precio-maximo';
+            } elseif ($price == min($data['values'])) {
+                $price_class = 'precio-minimo';
+            }
+            $rows .= "<td class='$price_class'>€" . esc_html($price) . "</td>";
         }
         $rows .= "</tr>";
     }
