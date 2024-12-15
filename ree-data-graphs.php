@@ -23,9 +23,9 @@ function ree_custom_js() {
 }
 
 // Obtener los datos de la API de REE
-function ree_obtener_datos_api($start_date, $end_date) {
+function ree_obtener_datos_api($start_date, $end_date, $time_trunc = 'hour') {
     $token = getenv('REE_API_TOKEN');  
-    $url = sprintf("https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=%s&end_date=%s&time_trunc=hour", urlencode($start_date), urlencode($end_date));
+    $url = sprintf("https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=%s&end_date=%s&time_trunc=%s", urlencode($start_date), urlencode($end_date), urlencode($time_trunc));
     $options = ['http' => ['header' => "Authorization: Bearer $token\r\n"]];
     $context = stream_context_create($options);
     return file_get_contents($url, false, $context);
@@ -33,7 +33,8 @@ function ree_obtener_datos_api($start_date, $end_date) {
 
 // Procesar los datos de la API
 function ree_procesar_datos($start_date, $end_date, $rango = 'horas') {
-    $data = ree_obtener_datos_api($start_date, $end_date);
+    $time_trunc = $rango == 'meses' ? 'month' : 'hour';
+    $data = ree_obtener_datos_api($start_date, $end_date, $time_trunc);
     $json_data = json_decode($data, true);
     if (empty($json_data) || !isset($json_data['included'][0]['attributes']['values'])) return null;
 
@@ -41,7 +42,13 @@ function ree_procesar_datos($start_date, $end_date, $rango = 'horas') {
     $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     $labels = array_map(function($item) use ($rango, $dias_semana) {
         $datetime = new DateTime($item['datetime']);
-        return $rango == 'dias' ? $dias_semana[$datetime->format('w')] . ' ' . $datetime->format('d') : $datetime->format('H') . 'h';
+        if ($rango == 'dias') {
+            return $dias_semana[$datetime->format('w')] . ' ' . $datetime->format('d');
+        } elseif ($rango == 'meses') {
+            return $datetime->format('M');
+        } else {
+            return $datetime->format('H') . 'h';
+        }
     }, $json_data['included'][0]['attributes']['values']);
 
     return ['labels' => $labels, 'values' => $values, 'raw_data' => $json_data['included'][0]['attributes']['values']];
@@ -119,7 +126,7 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
                             backgroundColor: 'rgba(75, 192, 192, 0.9)',
                             titleColor: 'white',
                             bodyColor: 'white',
-                            bodyFont: { size: 16 }, // Set font size to 16px
+                            bodyFont: { size: 16 },
                             cornerRadius: 5,
                             padding: 10,
                             callbacks: {
@@ -271,14 +278,6 @@ function ree_grafico_mes() {
     return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'dias');
 }
 
-// Gráfico anual
-function ree_grafico_anio() {
-    $start_date = date('Y-01-01') . 'T00:00';
-    $end_date = date('Y-12-31') . 'T23:59';
-    $unique_id = uniqid('anio_');
-    return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'meses');
-}
-
 // Tabla comparativa del día siguiente
 function ree_tabla_comparativa_dia_siguiente() {
     $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
@@ -290,7 +289,6 @@ function ree_tabla_comparativa_dia_siguiente() {
 add_shortcode('ree_grafico_dia', 'ree_grafico_dia');
 add_shortcode('ree_grafico_semana', 'ree_grafico_semana');
 add_shortcode('ree_grafico_mes', 'ree_grafico_mes');
-add_shortcode('ree_grafico_anio', 'ree_grafico_anio');
 add_shortcode('ree_grafico_dia_siguiente', 'ree_grafico_dia_siguiente');
 add_shortcode('ree_tabla_precio_dia', 'ree_tabla_precio_dia');
 add_shortcode('ree_tabla_comparativa', 'ree_tabla_comparativa');
