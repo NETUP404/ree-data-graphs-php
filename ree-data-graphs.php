@@ -1,12 +1,12 @@
 <?php
 /*
 Plugin Name: REE Data Graphs
-Description: Muestra gráficos de precios de electricidad usando la API de REE.
-Version: 1.2
-Author: UPinSERP.com
+Description: Datos API de REE
+Version: 1.6
+Author: UPinSERP
 */
 
-// Función para cargar los scripts y estilos necesarios para los gráficos
+// Función para cargar los scripts y estilos para gráficos
 function ree_enqueue_assets() {
     wp_enqueue_script('chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
     wp_enqueue_script('chartjs-adapter-date-fns', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns', [], null, true);
@@ -22,16 +22,16 @@ function ree_custom_js() {
     ";
 }
 
-// Función para obtener los datos de la API de REE
+// Obtener los datos de la API de REE
 function ree_obtener_datos_api($start_date, $end_date) {
-    $token = '154cceb69868d78bc9c84debb1126b6416bebf121d70a8d1c3867c4b59553140';  
+    $token = getenv('REE_API_TOKEN');  
     $url = sprintf("https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=%s&end_date=%s&time_trunc=hour", urlencode($start_date), urlencode($end_date));
     $options = ['http' => ['header' => "Authorization: Bearer $token\r\n"]];
     $context = stream_context_create($options);
     return file_get_contents($url, false, $context);
 }
 
-// Función para procesar los datos de la API
+// Procesar los datos de la API
 function ree_procesar_datos($start_date, $end_date, $rango = 'horas') {
     $data = ree_obtener_datos_api($start_date, $end_date);
     $json_data = json_decode($data, true);
@@ -47,7 +47,7 @@ function ree_procesar_datos($start_date, $end_date, $rango = 'horas') {
     return ['labels' => $labels, 'values' => $values, 'raw_data' => $json_data['included'][0]['attributes']['values']];
 }
 
-// Función para mostrar el gráfico
+// Gráfico
 function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas') {
     $data = ree_procesar_datos($start_date, $end_date, $rango);
     if (!$data) return 'Hubo un error al cargar los datos.';
@@ -140,21 +140,21 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
     return ob_get_clean();
 }
 
-// Función para mostrar la tabla con precios del día
+// Tabla con precios del día
 function ree_tabla_precio_dia() {
     $start_date = date('Y-m-d') . 'T00:00';
     $end_date = date('Y-m-d') . 'T23:59';
     return generar_tabla_estilo($start_date, $end_date);
 }
 
-// Función para mostrar la tabla con precios del día siguiente
+// Tabla con precios del día siguiente
 function ree_tabla_precio_dia_siguiente() {
     $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
     $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
     return generar_tabla_estilo($start_date, $end_date);
 }
 
-// Función genérica para generar tablas con estilo
+// Generar tablas con estilo
 function generar_tabla_estilo($start_date, $end_date) {
     $data = ree_procesar_datos($start_date, $end_date);
     if (!$data) return 'Hubo un error al cargar los datos.';
@@ -164,9 +164,9 @@ function generar_tabla_estilo($start_date, $end_date) {
     $hour_labels = array_chunk($data['labels'], 6);
     $min_price = min($data['values']);
     $max_price = max($data['values']);
-    $color_scale = [
-        '#00cc00', '#33cc33', '#66cc66', '#99cc00', '#cccc00', '#ffcc00',
-        '#ffcc66', '#ff9966', '#ff9933', '#ff6600', '#ff6633', '#cc6600'
+     $color_scale = [
+        '#8bc34a', '#9ccc65', '#aed581', '#c5e1a5', '#e6ee9c', '#fff59d',
+        '#ffe082', '#ffcc80', '#ffb74d', '#ffa726', '#ff9800', '#fb8c00'
     ];
 
     foreach ($hours as $row_index => $row_data) {
@@ -186,14 +186,14 @@ function generar_tabla_estilo($start_date, $end_date) {
     return "<table class='ree-table ree-table-precio-dia' border='1'><thead>$rows</thead></table>";
 }
 
-// Función para mostrar la tabla comparativa
+// Tabla comparativa
 function ree_tabla_comparativa() {
     $start_date = date('Y-m-d') . 'T00:00';
     $end_date = date('Y-m-d') . 'T23:59';
     return generar_tabla_comparativa($start_date, $end_date);
 }
 
-// Función genérica para generar tablas comparativas
+// Generar tablas comparativas
 function generar_tabla_comparativa($start_date, $end_date) {
     $data = ree_procesar_datos($start_date, $end_date);
     if (!$data) return 'Hubo un error al cargar los datos.';
@@ -209,10 +209,10 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $min_time = esc_html($data['labels'][$min_hour]);
     $current_time = esc_html($data['labels'][$current_hour]);
 
-    // Calculate colors for max, current, and min prices
-    $color_scale = [
-        '#00cc00', '#33cc33', '#66cc66', '#99cc00', '#cccc00', '#ffcc00',
-        '#ffcc66', '#ff9966', '#ff9933', '#ff6600', '#ff6633', '#cc6600'
+    // Calculate colors
+     $color_scale = [
+        '#8bc34a', '#9ccc65', '#aed581', '#c5e1a5', '#e6ee9c', '#fff59d',
+        '#ffe082', '#ffcc80', '#ffb74d', '#ffa726', '#ff9800', '#fb8c00'
     ];
 
     $max_color_index = (int)(($max_price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
@@ -242,7 +242,7 @@ function generar_tabla_comparativa($start_date, $end_date) {
     </table>";
 }
 
-// Función para el gráfico del día siguiente (día de mañana)
+// Gráfico del día siguiente (día de mañana)
 function ree_grafico_dia_siguiente() {
     $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
     $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
@@ -250,7 +250,7 @@ function ree_grafico_dia_siguiente() {
     return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'horas');
 }
 
-// Función para el gráfico diario
+// Gráfico diario
 function ree_grafico_dia() {
     $start_date = date('Y-m-d') . 'T00:00';
     $end_date = date('Y-m-d') . 'T23:59';
@@ -258,7 +258,7 @@ function ree_grafico_dia() {
     return ree_mostrar_grafico($start_date, $end_date, $unique_id);
 }
 
-// Función para el gráfico semanal
+// Gráfico semanal
 function ree_grafico_semana() {
     $start_date = date('Y-m-d', strtotime('last Monday')) . 'T00:00';
     $end_date = date('Y-m-d') . 'T23:59';
@@ -266,7 +266,7 @@ function ree_grafico_semana() {
     return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'dias');
 }
 
-// Función para el gráfico mensual
+// Gráfico mensual
 function ree_grafico_mes() {
     $start_date = date('Y-m-01') . 'T00:00';
     $end_date = date('Y-m-t') . 'T23:59';
@@ -274,7 +274,7 @@ function ree_grafico_mes() {
     return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'dias');
 }
 
-// Función para el gráfico anual
+// Gráfico anual
 function ree_grafico_anio() {
     $start_date = date('Y-01-01') . 'T00:00';
     $end_date = date('Y-12-31') . 'T23:59';
@@ -282,14 +282,14 @@ function ree_grafico_anio() {
     return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'meses');
 }
 
-// Función para mostrar la tabla comparativa del día siguiente
+// Tabla comparativa del día siguiente
 function ree_tabla_comparativa_dia_siguiente() {
     $start_date = date('Y-m-d', strtotime('tomorrow')) . 'T00:00';
     $end_date = date('Y-m-d', strtotime('tomorrow')) . 'T23:59';
     return generar_tabla_comparativa($start_date, $end_date);
 }
 
-// Registrar los shortcodes
+// Shortcodes
 add_shortcode('ree_grafico_dia', 'ree_grafico_dia');
 add_shortcode('ree_grafico_semana', 'ree_grafico_semana');
 add_shortcode('ree_grafico_mes', 'ree_grafico_mes');
