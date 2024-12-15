@@ -119,13 +119,10 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
                             backgroundColor: 'rgba(75, 192, 192, 0.9)',
                             titleColor: 'white',
                             bodyColor: 'white',
+                            bodyFont: { size: 16 }, // Set font size to 16px
                             cornerRadius: 5,
                             padding: 10,
                             callbacks: {
-                                title: function(tooltipItem) {
-                                    const date = new Date(data[tooltipItem[0].dataIndex].datetime);
-                                    return date.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: 'numeric' });
-                                },
                                 label: function(tooltipItem) {
                                     return '€' + tooltipItem.raw.toFixed(4);
                                 }
@@ -234,9 +231,9 @@ function generar_tabla_comparativa($start_date, $end_date) {
         </thead>
         <tbody>
             <tr>
-                <td style='background-color: $max_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($max_price, 3)) . " ($max_time)</td>
-                <td style='background-color: $current_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($current_price, 3)) . " ($current_time)</td>
-                <td style='background-color: $min_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($min_price, 3)) . " ($min_time)</td>
+                <td style='background-color: $max_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($max_price, 3)) . "</td>
+                <td style='background-color: $current_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($current_price, 3)) . "</td>
+                <td style='background-color: $min_color; color: #000000; font-weight: bold;'>€" . esc_html(number_format($min_price, 3)) . "</td>
             </tr>
         </tbody>
     </table>";
