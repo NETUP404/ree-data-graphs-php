@@ -262,11 +262,11 @@ function ree_grafico_dia() {
     return ree_mostrar_grafico($start_date, $end_date, $unique_id);
 }
 
-// Gráfico semanal
-function ree_grafico_semana() {
-    $start_date = date('Y-m-d', strtotime('last Monday')) . 'T00:00';
+// Gráfico de los últimos 7 días
+function ree_grafico_7dias() {
+    $start_date = date('Y-m-d', strtotime('-6 days')) . 'T00:00';
     $end_date = date('Y-m-d') . 'T23:59';
-    $unique_id = uniqid('semana_');
+    $unique_id = uniqid('7dias_');
     return ree_mostrar_grafico($start_date, $end_date, $unique_id, 'dias');
 }
 
@@ -287,7 +287,7 @@ function ree_tabla_comparativa_dia_siguiente() {
 
 // Shortcodes
 add_shortcode('ree_grafico_dia', 'ree_grafico_dia');
-add_shortcode('ree_grafico_semana', 'ree_grafico_semana');
+add_shortcode('ree_grafico_7dias', 'ree_grafico_7dias');
 add_shortcode('ree_grafico_mes', 'ree_grafico_mes');
 add_shortcode('ree_grafico_dia_siguiente', 'ree_grafico_dia_siguiente');
 add_shortcode('ree_tabla_precio_dia', 'ree_tabla_precio_dia');
