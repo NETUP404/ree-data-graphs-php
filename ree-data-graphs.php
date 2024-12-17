@@ -205,13 +205,13 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $prices = $data['values'];
     $max_price = max($prices);
     $min_price = min($prices);
-    $current_hour = (int)date('H');
+    $current_hour = (new DateTime('now', new DateTimeZone('UTC')))->modify('+1 hour')->format('H');
     $current_price = $prices[$current_hour];
     $max_hour = array_search($max_price, $prices);
     $min_hour = array_search($min_price, $prices);
     $max_time = esc_html($data['labels'][$max_hour]);
     $min_time = esc_html($data['labels'][$min_hour]);
-    $current_time = esc_html($data['labels'][$current_hour]);
+    $current_time = esc_html((new DateTime('now', new DateTimeZone('UTC')))->modify('+1 hour')->format('H:i'));  // Display current hour with minutes in UTC+1
 
     // Calculate colors
      $color_scale = [
@@ -232,7 +232,7 @@ function generar_tabla_comparativa($start_date, $end_date) {
         <thead>
             <tr>
                 <th>Precio Máximo</th>
-                <th>Precio Actual</th>
+                <th>Precio Actual ($current_time)</th>
                 <th>Precio Mínimo</th>
             </tr>
         </thead>
