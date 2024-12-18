@@ -24,7 +24,7 @@ jobs:
         echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
 
     - name: Run database connection test
-      run: php your-script.php
+      run: php ree-data-graphs.php
       env:
         DB_USERNAME: ${{ secrets.DB_USERNAME }}
         DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
