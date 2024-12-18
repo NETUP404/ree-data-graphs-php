@@ -22,13 +22,58 @@ function ree_custom_js() {
     ";
 }
 
-// Obtener los datos de la API de REE
+// Función para conectar a la base de datos
+function ree_db_connect() {
+    $servername = "localhost";
+    $username = "u511024218_webhustler";
+    $password = "xrcfgfg@lvfdfsdetrgvbrAAvrfgr355667fgbf56";
+    $dbname = "u511024218_ree";
+
+    // Crear la conexión
+    $conn = new mysqli($servername, $username, $password, $dbname);
+
+    // Verificar la conexión
+    if ($conn->connect_error) {
+        die("Conexión fallida: " . $conn->connect_error);
+    }
+    return $conn;
+}
+
+// Obtener los datos de la API de REE y almacenarlos en la base de datos
 function ree_obtener_datos_api($start_date, $end_date, $time_trunc = 'hour') {
+    $conn = ree_db_connect();
+    $table_name = 'ree_data';
+
+    // Verificar si ya tenemos los datos almacenados
+    $stmt = $conn->prepare("SELECT data FROM $table_name WHERE DATE(timestamp) = ?");
+    $stmt->bind_param("s", $start_date);
+    $stmt->execute();
+    $stmt->bind_result($result);
+    $stmt->fetch();
+    $stmt->close();
+
+    if ($result !== null) {
+        $conn->close();
+        return $result;
+    }
+
+    // Si no tenemos los datos, obtenerlos de la API
     $token = getenv('REE_API_TOKEN');  
     $url = sprintf("https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=%s&end_date=%s&time_trunc=%s", urlencode($start_date), urlencode($end_date), urlencode($time_trunc));
     $options = ['http' => ['header' => "Authorization: Bearer $token\r\n"]];
     $context = stream_context_create($options);
-    return file_get_contents($url, false, $context);
+    $data = file_get_contents($url, false, $context);
+
+    if ($data !== false) {
+        // Almacenar los datos en la base de datos
+        $stmt = $conn->prepare("INSERT INTO $table_name (data) VALUES (?)");
+        $stmt->bind_param("s", $data);
+        $stmt->execute();
+        $stmt->close();
+    }
+
+    $conn->close();
+    return $data;
 }
 
 // Procesar los datos de la API
@@ -168,7 +213,7 @@ function generar_tabla_estilo($start_date, $end_date) {
     $hour_labels = array_chunk($data['labels'], 6);
     $min_price = min($data['values']);
     $max_price = max($data['values']);
-     $color_scale = [
+    $color_scale = [
         '#8bc34a', '#9ccc65', '#aed581', '#c5e1a5', '#e6ee9c', '#fff59d',
         '#ffe082', '#ffcc80', '#ffb74d', '#ffa726', '#ff9800', '#fb8c00'
     ];
@@ -214,7 +259,7 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $current_time = esc_html((new DateTime('now', new DateTimeZone('UTC')))->modify('+1 hour')->format('H:i'));  // Display current hour with minutes in UTC+1
 
     // Calculate colors
-     $color_scale = [
+    $color_scale = [
         '#8bc34a', '#9ccc65', '#aed581', '#c5e1a5', '#e6ee9c', '#fff59d',
         '#ffe082', '#ffcc80', '#ffb74d', '#ffa726', '#ff9800', '#fb8c00'
     ];
