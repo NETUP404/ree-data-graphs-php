@@ -6,6 +6,9 @@ Version: 1.6
 Author: UPinSERP
 */
 
+// Incluir el archivo de configuración
+$config = require __DIR__ . '/config.php';
+
 // Función para cargar los scripts y estilos para gráficos
 function ree_enqueue_assets() {
     wp_enqueue_script('chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
@@ -24,15 +27,14 @@ function ree_custom_js() {
 
 // Función para conectar a la base de datos
 function ree_db_connect() {
-    $servername = "localhost";
-    $username = "u511024218_webhustler";
-    $password = "xrcfgfg@lvfdfsdetrgvbrAAvrfgr355667fgbf56";
-    $dbname = "u511024218_ree";
+    global $config;
+    $servername = $config['db']['servername'];
+    $username = $config['db']['username'];
+    $password = $config['db']['password'];
+    $dbname = $config['db']['dbname'];
 
-    // Crear la conexión
     $conn = new mysqli($servername, $username, $password, $dbname);
 
-    // Verificar la conexión
     if ($conn->connect_error) {
         die("Conexión fallida: " . $conn->connect_error);
     }
