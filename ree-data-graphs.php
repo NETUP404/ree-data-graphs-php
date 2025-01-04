@@ -28,6 +28,8 @@ function ree_custom_js() {
 // Función para conectar a la base de datos
 function ree_db_connect() {
     global $config;
+
+    // Cargar credenciales desde la configuración
     $servername = $config['db']['servername'];
     $username = $config['db']['username'];
     $password = $config['db']['password'];
@@ -43,6 +45,7 @@ function ree_db_connect() {
 
 // Obtener los datos de la API de REE y almacenarlos en la base de datos
 function ree_obtener_datos_api($start_date, $end_date, $time_trunc = 'hour') {
+    global $config;
     $conn = ree_db_connect();
     $table_name = 'ree_data';
 
@@ -60,7 +63,11 @@ function ree_obtener_datos_api($start_date, $end_date, $time_trunc = 'hour') {
     }
 
     // Si no tenemos los datos, obtenerlos de la API
-    $token = getenv('REE_API_TOKEN');  
+    if (!isset($config['api']['ree_token'])) {
+        die("Token de API no configurado.");
+    }
+    $token = $config['api']['ree_token'];
+
     $url = sprintf("https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=%s&end_date=%s&time_trunc=%s", urlencode($start_date), urlencode($end_date), urlencode($time_trunc));
     $options = ['http' => ['header' => "Authorization: Bearer $token\r\n"]];
     $context = stream_context_create($options);
@@ -68,7 +75,7 @@ function ree_obtener_datos_api($start_date, $end_date, $time_trunc = 'hour') {
 
     if ($data !== false) {
         // Almacenar los datos en la base de datos
-        $stmt = $conn->prepare("INSERT INTO $table_name (data) VALUES (?)");
+        $stmt = $conn->prepare("INSERT INTO $table_name (data, timestamp) VALUES (?, NOW())");
         $stmt->bind_param("s", $data);
         $stmt->execute();
         $stmt->close();
@@ -83,9 +90,11 @@ function ree_procesar_datos($start_date, $end_date, $rango = 'horas') {
     $time_trunc = $rango == 'meses' ? 'month' : 'hour';
     $data = ree_obtener_datos_api($start_date, $end_date, $time_trunc);
     $json_data = json_decode($data, true);
+
     if (empty($json_data) || !isset($json_data['included'][0]['attributes']['values'])) return null;
 
-    $values = array_map(fn($item) => $item['value'] / 1000, $json_data['included'][0]['attributes']['values']); // Convertir €/MWh a €/kWh
+    // Conversión de €/MWh a €/kWh
+    $values = array_map(fn($item) => $item['value'] / 1000, $json_data['included'][0]['attributes']['values']);
     $dias_semana = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
     $labels = array_map(function($item) use ($rango, $dias_semana) {
         $datetime = new DateTime($item['datetime']);
@@ -97,6 +106,10 @@ function ree_procesar_datos($start_date, $end_date, $rango = 'horas') {
             return $datetime->format('H') . 'h';
         }
     }, $json_data['included'][0]['attributes']['values']);
+
+    // Logging para depuración
+    error_log('Labels: ' . print_r($labels, true));
+    error_log('Values: ' . print_r($values, true));
 
     return ['labels' => $labels, 'values' => $values, 'raw_data' => $json_data['included'][0]['attributes']['values']];
 }
@@ -252,13 +265,13 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $prices = $data['values'];
     $max_price = max($prices);
     $min_price = min($prices);
-    $current_hour = (new DateTime('now', new DateTimeZone('UTC')))->modify('+1 hour')->format('H');
-    $current_price = $prices[$current_hour];
+    $current_hour = (new DateTime('now', new DateTimeZone('UTC')))->format('H');
+    $current_price = $prices[$current_hour] ?? $prices[count($prices) - 1]; // Obtener el precio actual o el último precio disponible
     $max_hour = array_search($max_price, $prices);
     $min_hour = array_search($min_price, $prices);
     $max_time = esc_html($data['labels'][$max_hour]);
     $min_time = esc_html($data['labels'][$min_hour]);
-    $current_time = esc_html((new DateTime('now', new DateTimeZone('UTC')))->modify('+1 hour')->format('H:i'));  // Display current hour with minutes in UTC+1
+    $current_time = esc_html((new DateTime('now', new DateTimeZone('UTC')))->format('H:i'));
 
     // Calculate colors
     $color_scale = [
