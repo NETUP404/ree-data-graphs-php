@@ -13,6 +13,7 @@ $config = require __DIR__ . '/config.php';
 function ree_enqueue_assets() {
     wp_enqueue_script('chartjs', 'https://cdn.jsdelivr.net/npm/chart.js', [], null, true);
     wp_enqueue_script('chartjs-adapter-date-fns', 'https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns', [], null, true);
+    wp_enqueue_script('chartjs-plugin-annotation', 'https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation', [], null, true);
     wp_add_inline_script('chartjs', ree_custom_js());
 }
 add_action('wp_enqueue_scripts', 'ree_enqueue_assets');
@@ -134,6 +135,7 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
             const labels = <?php echo json_encode($data['labels']); ?>;
             const values = <?php echo json_encode($data['values']); ?>;
             const uniqueLabels = labels.filter((v, i, a) => a.indexOf(v) === i);
+            const currentTime = new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Madrid' });
 
             canvas.chart = new Chart(ctx, {
                 type: 'line',
@@ -192,6 +194,22 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
                             callbacks: {
                                 label: function(tooltipItem) {
                                     return '€' + tooltipItem.raw.toFixed(4);
+                                }
+                            }
+                        },
+                        annotation: {
+                            annotations: {
+                                line1: {
+                                    type: 'line',
+                                    xMin: currentTime,
+                                    xMax: currentTime,
+                                    borderColor: 'red',
+                                    borderWidth: 2,
+                                    label: {
+                                        content: 'Hora Actual',
+                                        enabled: true,
+                                        position: 'top'
+                                    }
                                 }
                             }
                         }
@@ -265,13 +283,13 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $prices = $data['values'];
     $max_price = max($prices);
     $min_price = min($prices);
-    $current_hour = (new DateTime('now', new DateTimeZone('UTC')))->format('H');
+    $current_hour = (new DateTime('now', new DateTimeZone('Europe/Madrid')))->format('H');
     $current_price = $prices[$current_hour] ?? $prices[count($prices) - 1]; // Obtener el precio actual o el último precio disponible
     $max_hour = array_search($max_price, $prices);
     $min_hour = array_search($min_price, $prices);
     $max_time = esc_html($data['labels'][$max_hour]);
     $min_time = esc_html($data['labels'][$min_hour]);
-    $current_time = esc_html((new DateTime('now', new DateTimeZone('UTC')))->format('H:i'));
+    $current_time = esc_html((new DateTime('now', new DateTimeZone('Europe/Madrid')))->format('H:i'));
 
     // Calculate colors
     $color_scale = [
