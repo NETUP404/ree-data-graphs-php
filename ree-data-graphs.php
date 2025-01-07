@@ -6,7 +6,6 @@ Version: 1.6
 Author: UPinSERP
 */
 
-// Incluir el archivo de configuración
 $config = require __DIR__ . '/config.php';
 
 // Función para cargar los scripts y estilos para gráficos
@@ -135,7 +134,8 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
             const labels = <?php echo json_encode($data['labels']); ?>;
             const values = <?php echo json_encode($data['values']); ?>;
             const uniqueLabels = labels.filter((v, i, a) => a.indexOf(v) === i);
-            const currentTime = new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Madrid' });
+            const currentTime = new Date();
+            const currentHour = currentTime.getHours();
 
             canvas.chart = new Chart(ctx, {
                 type: 'line',
@@ -201,8 +201,8 @@ function ree_mostrar_grafico($start_date, $end_date, $unique_id, $rango = 'horas
                             annotations: {
                                 line1: {
                                     type: 'line',
-                                    xMin: currentTime,
-                                    xMax: currentTime,
+                                    xMin: currentHour,
+                                    xMax: currentHour,
                                     borderColor: 'red',
                                     borderWidth: 2,
                                     label: {
@@ -291,7 +291,7 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $min_time = esc_html($data['labels'][$min_hour]);
     $current_time = esc_html((new DateTime('now', new DateTimeZone('Europe/Madrid')))->format('H:i'));
 
-    // Calculate colors
+    // Calcular colores
     $color_scale = [
         '#8bc34a', '#9ccc65', '#aed581', '#c5e1a5', '#e6ee9c', '#fff59d',
         '#ffe082', '#ffcc80', '#ffb74d', '#ffa726', '#ff9800', '#fb8c00'
@@ -300,7 +300,7 @@ function generar_tabla_comparativa($start_date, $end_date) {
     $max_color_index = (int)(($max_price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
     $current_color_index = (int)(($current_price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
     $min_color_index = (int)(($min_price - $min_price) / ($max_price - $min_price) * (count($color_scale) - 1));
-    
+
     $max_color = $color_scale[$max_color_index];
     $current_color = $color_scale[$current_color_index];
     $min_color = $color_scale[$min_color_index];
