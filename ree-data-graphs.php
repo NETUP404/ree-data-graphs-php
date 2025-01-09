@@ -2,7 +2,7 @@
 /*
 Plugin Name: REE Data Graphs
 Description: Datos API de REE
-Version: 2.0
+Version: 2.1
 Author: UPinSERP
 */
 
@@ -44,13 +44,14 @@ function ree_db_connect_optimized() {
 }
 
 // Obtener los datos de la API de REE y almacenarlos en la base de datos optimizada
-function ree_obtener_datos_api_optimized() {
+function ree_obtener_datos_api_optimized($dia_siguiente = false) {
     global $config;
     $conn = ree_db_connect_optimized();
     $table_name = 'ree_data';
 
     // Verificar si ya tenemos los datos almacenados
-    $stmt = $conn->prepare("SELECT value, datetime FROM $table_name WHERE DATE(timestamp) = CURDATE()");
+    $date_condition = $dia_siguiente ? "CURDATE() + INTERVAL 1 DAY" : "CURDATE()";
+    $stmt = $conn->prepare("SELECT value, datetime FROM $table_name WHERE DATE(timestamp) = $date_condition");
     $stmt->execute();
     $stmt->bind_result($value, $datetime);
     $result = [];
@@ -69,8 +70,10 @@ function ree_obtener_datos_api_optimized() {
         die("Token de API no configurado.");
     }
     $token = $config['api']['ree_token'];
+    $startDate = (new DateTime($dia_siguiente ? 'tomorrow' : 'today'))->format('Y-m-d');
+    $endDate = $startDate;
 
-    $url = "https://api.esios.ree.es/indicators/1001";
+    $url = "https://api.esios.ree.es/indicators/1001?start_date={$startDate}&end_date={$endDate}";
     $options = ['http' => ['header' => "Authorization: Bearer $token\r\n"]];
     $context = stream_context_create($options);
     $data = file_get_contents($url, false, $context);
@@ -92,8 +95,8 @@ function ree_obtener_datos_api_optimized() {
 }
 
 // Procesar los datos de la API optimizada
-function ree_procesar_datos_optimized() {
-    $data = ree_obtener_datos_api_optimized();
+function ree_procesar_datos_optimized($dia_siguiente = false) {
+    $data = ree_obtener_datos_api_optimized($dia_siguiente);
 
     if (empty($data)) return null;
 
@@ -204,12 +207,12 @@ function ree_tabla_precio_dia() {
 
 // Tabla con precios del día siguiente
 function ree_tabla_precio_dia_siguiente() {
-    return generar_tabla_estilo();
+    return generar_tabla_estilo(true);
 }
 
 // Generar tablas con estilo
-function generar_tabla_estilo() {
-    $data = ree_procesar_datos_optimized();
+function generar_tabla_estilo($dia_siguiente = false) {
+    $data = ree_procesar_datos_optimized($dia_siguiente);
     if (!$data) return 'Hubo un error al cargar los datos.';
 
     $rows = '';
@@ -245,8 +248,8 @@ function ree_tabla_comparativa() {
 }
 
 // Generar tablas comparativas
-function generar_tabla_comparativa() {
-    $data = ree_procesar_datos_optimized();
+function generar_tabla_comparativa($dia_siguiente = false) {
+    $data = ree_procesar_datos_optimized($dia_siguiente);
     if (!$data) return 'Hubo un error al cargar los datos.';
 
     $prices = $data['values'];
@@ -295,7 +298,7 @@ function generar_tabla_comparativa() {
 
 // Gráfico del día siguiente (día de mañana)
 function ree_grafico_dia_siguiente() {
-    $data = ree_procesar_datos_optimized();
+    $data = ree_procesar_datos_optimized(true);
     $unique_id = uniqid('dia_siguiente_');
     return ree_mostrar_grafico($unique_id, $data);
 }
@@ -323,7 +326,7 @@ function ree_grafico_mes() {
 
 // Tabla comparativa del día siguiente
 function ree_tabla_comparativa_dia_siguiente() {
-    return generar_tabla_comparativa();
+    return generar_tabla_comparativa(true);
 }
 
 // Shortcodes
