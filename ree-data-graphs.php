@@ -292,9 +292,9 @@ function generar_tabla_comparativa($dia_siguiente = false) {
     <table class='ree-table ree-table-comparativa'>
         <thead>
             <tr>
-                <th>Precio Máximo</th>
+                <th>Precio Máximo ($max_time)</th>
                 <th>Precio Actual ($current_time)</th>
-                <th>Precio Mínimo</th>
+                <th>Precio Mínimo ($min_time)</th>
             </tr>
         </thead>
         <tbody>
@@ -330,9 +330,35 @@ function ree_grafico_7dias() {
 
 // Gráfico mensual
 function ree_grafico_mes() {
-    $data = ree_procesar_datos_optimized();
+    $data = ree_procesar_datos_mes();
     $unique_id = uniqid('mes_');
     return ree_mostrar_grafico($unique_id, $data);
+}
+
+// Procesar los datos del último mes
+function ree_procesar_datos_mes() {
+    global $config;
+    $conn = ree_db_connect_optimized();
+    $table_name = 'ree_data';
+
+    // Obtener los datos del último mes
+    $stmt = $conn->prepare("SELECT value, DATE(datetime) as date FROM $table_name WHERE datetime >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH) GROUP BY date ORDER BY date");
+    $stmt->execute();
+    $stmt->bind_result($value, $date);
+    $result = [];
+    while ($stmt->fetch()) {
+        $result[] = ['value' => $value, 'date' => $date];
+    }
+    $stmt->close();
+    $conn->close();
+
+    if (empty($result)) return null;
+
+    // Conversión de €/MWh a €/kWh
+    $values = array_map(fn($item) => $item['value'] / 1000, $result);
+    $labels = array_map(fn($item) => $item['date'], $result);
+
+    return ['labels' => array_values($labels), 'values' => array_values($values)];
 }
 
 // Tabla comparativa del día siguiente
