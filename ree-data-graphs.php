@@ -2,7 +2,7 @@
 /*
 Plugin Name: REE Data Graphs
 Description: Datos API de REE
-Version: 1.6
+Version: 2.0
 Author: UPinSERP
 */
 
@@ -25,8 +25,8 @@ function ree_custom_js() {
     ";
 }
 
-// Función para conectar a la base de datos
-function ree_db_connect() {
+// Función para conectar a la base de datos optimizada
+function ree_db_connect_optimized() {
     global $config;
 
     // Cargar credenciales desde la configuración
@@ -43,20 +43,23 @@ function ree_db_connect() {
     return $conn;
 }
 
-// Obtener los datos de la API de REE y almacenarlos en la base de datos
-function ree_obtener_datos_api() {
+// Obtener los datos de la API de REE y almacenarlos en la base de datos optimizada
+function ree_obtener_datos_api_optimized() {
     global $config;
-    $conn = ree_db_connect();
+    $conn = ree_db_connect_optimized();
     $table_name = 'ree_data';
 
     // Verificar si ya tenemos los datos almacenados
-    $stmt = $conn->prepare("SELECT data FROM $table_name WHERE DATE(timestamp) = CURDATE()");
+    $stmt = $conn->prepare("SELECT value, datetime FROM $table_name WHERE DATE(timestamp) = CURDATE()");
     $stmt->execute();
-    $stmt->bind_result($result);
-    $stmt->fetch();
+    $stmt->bind_result($value, $datetime);
+    $result = [];
+    while ($stmt->fetch()) {
+        $result[] = ['value' => $value, 'datetime' => $datetime];
+    }
     $stmt->close();
 
-    if ($result !== null) {
+    if (!empty($result)) {
         $conn->close();
         return $result;
     }
@@ -75,49 +78,31 @@ function ree_obtener_datos_api() {
     if ($data !== false) {
         $json_data = json_decode($data, true);
         foreach ($json_data['indicator']['values'] as $value) {
-            // Almacenar los datos en la base de datos
-            $stmt = $conn->prepare("INSERT INTO $table_name (value, datetime, datetime_utc, tz_time, geo_id, geo_name, data, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-            $stmt->bind_param(
-                "dssssiss",
-                $value['value'],
-                $value['datetime'],
-                $value['datetime_utc'],
-                $value['tz_time'],
-                $value['geo_id'],
-                $value['geo_name'],
-                json_encode($value)
-            );
-            $stmt->execute();
+            if ($value['geo_name'] === 'Península') {
+                $stmt = $conn->prepare("INSERT INTO $table_name (value, datetime) VALUES (?, ?)");
+                $stmt->bind_param("ds", $value['value'], $value['datetime']);
+                $stmt->execute();
+            }
         }
         $stmt->close();
     }
 
     $conn->close();
-    return $data;
+    return $result;
 }
 
-// Procesar los datos de la API
-function ree_procesar_datos() {
-    $data = ree_obtener_datos_api();
-    $json_data = json_decode($data, true);
+// Procesar los datos de la API optimizada
+function ree_procesar_datos_optimized() {
+    $data = ree_obtener_datos_api_optimized();
 
-    if (empty($json_data) || !isset($json_data['indicator']['values'])) return null;
-
-    // Filtrar datos para Península
-    $peninsula_data = array_filter($json_data['indicator']['values'], function($item) {
-        return $item['geo_name'] === 'Península';
-    });
+    if (empty($data)) return null;
 
     // Conversión de €/MWh a €/kWh
-    $values = array_map(fn($item) => $item['value'] / 1000, $peninsula_data);
+    $values = array_map(fn($item) => $item['value'] / 1000, $data);
     $labels = array_map(function($item) {
         $datetime = new DateTime($item['datetime']);
         return $datetime->format('H:i');
-    }, $peninsula_data);
-
-    // Logging para depuración
-    error_log('Labels: ' . print_r($labels, true));
-    error_log('Values: ' . print_r($values, true));
+    }, $data);
 
     return ['labels' => array_values($labels), 'values' => array_values($values)];
 }
@@ -224,7 +209,7 @@ function ree_tabla_precio_dia_siguiente() {
 
 // Generar tablas con estilo
 function generar_tabla_estilo() {
-    $data = ree_procesar_datos();
+    $data = ree_procesar_datos_optimized();
     if (!$data) return 'Hubo un error al cargar los datos.';
 
     $rows = '';
@@ -261,7 +246,7 @@ function ree_tabla_comparativa() {
 
 // Generar tablas comparativas
 function generar_tabla_comparativa() {
-    $data = ree_procesar_datos();
+    $data = ree_procesar_datos_optimized();
     if (!$data) return 'Hubo un error al cargar los datos.';
 
     $prices = $data['values'];
@@ -310,28 +295,28 @@ function generar_tabla_comparativa() {
 
 // Gráfico del día siguiente (día de mañana)
 function ree_grafico_dia_siguiente() {
-    $data = ree_procesar_datos();
+    $data = ree_procesar_datos_optimized();
     $unique_id = uniqid('dia_siguiente_');
     return ree_mostrar_grafico($unique_id, $data);
 }
 
 // Gráfico diario
 function ree_grafico_dia() {
-    $data = ree_procesar_datos();
+    $data = ree_procesar_datos_optimized();
     $unique_id = uniqid('dia_');
     return ree_mostrar_grafico($unique_id, $data);
 }
 
 // Gráfico de los últimos 7 días
 function ree_grafico_7dias() {
-    $data = ree_procesar_datos();
+    $data = ree_procesar_datos_optimized();
     $unique_id = uniqid('7dias_');
     return ree_mostrar_grafico($unique_id, $data);
 }
 
 // Gráfico mensual
 function ree_grafico_mes() {
-    $data = ree_procesar_datos();
+    $data = ree_procesar_datos_optimized();
     $unique_id = uniqid('mes_');
     return ree_mostrar_grafico($unique_id, $data);
 }
