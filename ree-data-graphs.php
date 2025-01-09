@@ -112,7 +112,18 @@ function ree_procesar_datos_optimized($dia_siguiente = false) {
 
 // Función para mostrar gráfico
 function ree_mostrar_grafico($unique_id, $data) {
-    if (!$data) return 'Hubo un error al cargar los datos.';
+    if (!$data) {
+        return '
+        <div style="padding: 20px; background-color: #f7f7f7; border-radius: 10px; text-align: center; margin: 0 auto; display: inline-block;">
+    <img src="https://precioluzhoy.info/wp-content/uploads/2025/01/NicePng_atencion-png_2419914.png" 
+         alt="Icono de luz encendida" style=" height: 90px; margin: 0 auto; display: block;">
+    <p style="color: #333; font-weight: bold; margin: 15px 0 0;">
+        Por el momento, los precios de la luz para el día siguiente no están disponibles. Esto se debe a que Red Eléctrica no finaliza el cálculo definitivo hasta las 20:20 horas.  
+    </p>
+</div>
+
+';
+    }
 
     ob_start();
     ?>
@@ -213,7 +224,7 @@ function ree_tabla_precio_dia_siguiente() {
 // Generar tablas con estilo
 function generar_tabla_estilo($dia_siguiente = false) {
     $data = ree_procesar_datos_optimized($dia_siguiente);
-    if (!$data) return 'Hubo un error al cargar los datos.';
+    if (!$data) return '';
 
     $rows = '';
     $hours = array_chunk($data['values'], 6);
@@ -250,7 +261,7 @@ function ree_tabla_comparativa() {
 // Generar tablas comparativas
 function generar_tabla_comparativa($dia_siguiente = false) {
     $data = ree_procesar_datos_optimized($dia_siguiente);
-    if (!$data) return 'Hubo un error al cargar los datos.';
+    if (!$data) return '';
 
     $prices = $data['values'];
     $max_price = max($prices);
