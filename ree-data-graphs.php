@@ -69,8 +69,7 @@ function ree_obtener_datos_api($start_date, $end_date, $time_trunc = 'hour') {
     }
     $token = $config['api']['ree_token'];
 
-    $url = sprintf("https://apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?start_date=%s&end_date=%s&time_trunc=%s", urlencode($start_date), urlencode($end_date), urlencode($time_trunc));
-    $options = ['http' => ['header' => "Authorization: Bearer $token\r\n"]];
+    $url = sprintf("https://api.esios.ree.es/indicators/1001?start_date=%s&end_date=%s&time_trunc=%s", urlencode($start_date), urlencode($end_date), urlencode($time_trunc));    $options = ['http' => ['header' => "Authorization: Bearer $token\r\n"]];
     $context = stream_context_create($options);
     $data = file_get_contents($url, false, $context);
 
